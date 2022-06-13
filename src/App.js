@@ -1,41 +1,50 @@
-import React from 'react';
-import {
-  ChakraProvider,
-  Box,
-  Text,
-  Link,
-  VStack,
-  Code,
-  Grid,
-  theme,
-} from '@chakra-ui/react';
-import { ColorModeSwitcher } from './ColorModeSwitcher';
-import { Logo } from './Logo';
+import { ChakraProvider, Box } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import Navbar from './Components/Navbar';
+import ContenedorPrincipal from './Components/ContenedorPrincipal';
 
 function App() {
+
+  const [titulo, setTitulo] = useState("")
+
+  const [resultados, setResultados] = useState([])
+
+  const [busquedaActiva, setBusquedaActiva] = useState(false)
+
+  const [errorBusqueda, setErrorBusqueda] = useState(false)
+
+  const realizarBusqueda = (titulo) => {
+    //Vaciamos resultados y titulo.
+    setResultados([])
+    setTitulo("")
+
+    //Configuramos lo que vamos a buscar y lo guardamos en resultados.
+    setTitulo(titulo)
+    fetch(`https://imdb-api.com/es/API/Search/k_6oi7k7fq/${titulo}`)
+      .then(res => res.json())
+      .then(data => respuestaBusqueda(data))
+    setBusquedaActiva(true)
+  }
+
+  const respuestaBusqueda = (data) => {
+    //Cargamos los datos y si la bandera de error esta marcada, la desmarcamos.
+    if (data.errorMessage) {
+      setErrorBusqueda(true)
+    }
+    setResultados(data.results)
+  }
+
   return (
-    <ChakraProvider theme={theme}>
-      <Box textAlign="center" fontSize="xl">
-        <Grid minH="100vh" p={3}>
-          <ColorModeSwitcher justifySelf="flex-end" />
-          <VStack spacing={8}>
-            <Logo h="40vmin" pointerEvents="none" />
-            <Text>
-              Edit <Code fontSize="xl">src/App.js</Code> and save to reload.
-            </Text>
-            <Link
-              color="teal.500"
-              href="https://chakra-ui.com"
-              fontSize="2xl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn Chakra
-            </Link>
-          </VStack>
-        </Grid>
-      </Box>
-    </ChakraProvider>
+    <>
+      <ChakraProvider>
+        <Box
+        backgroundColor="black"
+        >
+          <Navbar titulo={titulo} realizarBusqueda={realizarBusqueda} />
+          <ContenedorPrincipal resultados={resultados} error={errorBusqueda} busquedaActiva={busquedaActiva} desactivarBusqueda={() => setBusquedaActiva(prev => !prev)}/>
+        </Box>
+      </ChakraProvider>
+    </>
   );
 }
 
